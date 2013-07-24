@@ -28,14 +28,14 @@ module BowlingGameSpec
 			  @bowling_game.roll(9)
 			end
 
-			it "should add next roll's points= 1 as a bonus" do
+			it "should add next roll's points as a bonus" do
 			  @bowling_game.roll(1)
 
 			  # spare = 10 points plus next roll bonus = 1, and plus next roll points = 1  == 12
 			  @bowling_game.score.should == 12
 			end
 
-			it "should add next roll's points = 2 as a bonus" do
+			it "should add next roll's points as a bonus" do
 			  @bowling_game.roll(2)
 
 			  @bowling_game.score.should == 14		  
