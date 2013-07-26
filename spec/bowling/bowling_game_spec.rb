@@ -31,7 +31,7 @@ module BowlingGameSpec
 			it "should add next roll's points as a bonus" do
 			  @bowling_game.roll(1)
 
-			  # spare = 10 points plus next roll bonus = 1, and plus next roll points = 1  == 12
+			  # spare = 10 points plus next roll bonus = 1, and plus next roll points = 1 total 12
 			  @bowling_game.score.should == 12
 			end
 
@@ -43,7 +43,6 @@ module BowlingGameSpec
 		end
 
 		context "after strike roll" do
-
 			before(:each) do
 			  @bowling_game.roll(10)
 			end

@@ -1,9 +1,5 @@
 class BowlingGame
-	MAX_ROLLS = 21
-	MAX_FRAMES = 10
-
 	def initialize
-		@score = 0
 		@rolls = Rolls.new
 	end
 
@@ -12,30 +8,87 @@ class BowlingGame
 	end
 
 	def score
- 		(1..10).each do |frame_nr|
- 			@score += @rolls.frame_score(frame_nr)
- 			
- 			if @rolls.is_strike?(frame_nr)
- 				@score += @rolls.frame_score(frame_nr + 1)
- 			elsif @rolls.is_spare?(frame_nr)
- 				next_roll_nr = frame_first_roll_nr(frame_nr + 1)
- 				@score += @rolls.get_roll_points(next_roll_nr)
- 			end
- 		end
-
- 		@score
+ 		@rolls.to_frames.total_score
  	end
+end
 
- 	private
+class Frames
+	MAX_FRAMES = 10
 
-	def frame_first_roll_nr(frame_nr)
-		(frame_nr * 2) - 1
+	class Frame
+		def initialize(first_4_rolls, is_last_frame = false)
+			@rolls = first_4_rolls || []
+			@is_last_frame = is_last_frame
+		end
+
+		def roll_points(roll_index)
+			@rolls[roll_index-1] || 0
+		end
+
+		def first_roll
+			roll_points(1)
+		end
+
+		def second_roll
+			roll_points(2)
+		end
+
+		def is_strike?
+			first_roll == 10
+		end
+
+		def is_spare?
+			((first_roll + second_roll) == 10) && (not is_strike?)
+		end
+
+		def frame_score
+			return @rolls[0,3].inject(0, :+) if @is_last_frame
+
+			score = first_roll + second_roll
+
+			if is_spare?
+				score += roll_points(3)
+			elsif is_strike?
+				score += roll_points(3) + roll_points(4)
+			end
+
+			score
+		end
+
+		alias_method :score, :frame_score
+	end
+
+	def initialize(rolls)
+		@rolls = rolls
+	end
+
+	def frame(frame_index)
+		first_roll_index  = (frame_index - 1) * 2
+
+		is_last_frame = frame_index == MAX_FRAMES
+
+		Frame.new(@rolls[first_roll_index, 4], is_last_frame)
+	end
+
+	def each
+		MAX_FRAMES.times do |index|
+			yield frame(index + 1)
+		end
+	end
+
+	def total_score
+		score = 0
+
+		MAX_FRAMES.times do |index|
+			score += frame(index + 1).score
+		end
+
+		score
 	end
 end
 
 class Rolls
 	MAX_ROLLS = 21
-	MAX_FRAMES = 10
 
 	def initialize
 		@rolls = []
@@ -48,32 +101,13 @@ class Rolls
 		@rolls << 0 if pins == 10
 	end
 
-	def get_roll_points(roll_nr)
+	def get_roll_points(roll_index)
 		return 0 unless roll_nr.between?(1, MAX_ROLLS)
 
-		@rolls[roll_nr-1] || 0
+		@rolls[roll_index-1] || 0
 	end
 
-	def frame_score(frame_nr)
-		first_roll_nr  = frame_first_roll_nr(frame_nr)
-		second_roll_nr = first_roll_nr + 1
-
-		get_roll_points(first_roll_nr) + get_roll_points(second_roll_nr)
-	end
-
-	def is_strike?(frame_nr)
-		first_frame_roll_nr = frame_first_roll_nr(frame_nr)
-
-		get_roll_points(first_frame_roll_nr) == 10
-	end
-
-	def is_spare?(frame_nr)
-		frame_score(frame_nr) == 10
-	end
-
-	private
-
-	def frame_first_roll_nr(frame_nr)
-		(frame_nr * 2) - 1
+	def to_frames
+		Frames.new(@rolls)
 	end
 end
