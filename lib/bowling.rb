@@ -1,1 +1,3 @@
-require 'bowling/bowling_game'
+require 'bowling/game'
+require 'bowling/rolls'
+require 'bowling/frames'
